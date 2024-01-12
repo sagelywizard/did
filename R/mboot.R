@@ -134,15 +134,12 @@ run_multiplier_bootstrap <- function(inf.func, biters, pl = FALSE, cores = 1) {
   }
   # From tests, this is about where it becomes worth it to parallelize
   if(n > 2500 & pl == TRUE & cores > 1) {
-    cluster <- makeCluster(cores)
+    cluster = parallel::makeCluster(cores)
     tryCatch({
-      parLapply(cluster, 1:cores, function(core_num) {
-          require("BMisc", character.only=TRUE)
-        }
-      )
-      results = parLapply(cluster, chunks, parallel.function)
+      results = parallel::parLapply(cluster, chunks, parallel.function)
+      results = do.call(rbind, results)
     }, finally = {
-      stopCluster(cluster)
+      parallel::stopCluster(cluster)
     })
   } else {
     results = BMisc::multiplier_bootstrap(inf.func, biters)
