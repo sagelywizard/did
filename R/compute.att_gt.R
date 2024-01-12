@@ -60,7 +60,7 @@ compute.att_gt <- function(dp) {
   }
 
   # influence function
-  inffunc <- Matrix::Matrix(data=0,nrow=n, ncol=nG*(nT-tfac), sparse=TRUE)
+  inffunc <- Matrix::Matrix(data=0, nrow=n, ncol=nG*(nT-tfac), sparse=FALSE)
 
   # never treated option
   nevertreated <- (control_group[1] == "nevertreated")
@@ -377,22 +377,16 @@ compute.att_gt <- function(dp) {
       # recover the influence function
       # start with vector of 0s because influence function
       # for units that are not in G or C will be equal to 0
-      inf.func <- rep(0, n)
 
       # populate the influence function in the right places
       if(panel) {
-        inf.func[disidx] <- attgt$att.inf.func
+        inffunc[disidx, counter] <- attgt$att.inf.func
       } else {
         # aggregate inf functions by id (order by id)
         aggte_inffunc = suppressWarnings(stats::aggregate(attgt$att.inf.func, list(rightids), sum))
         disidx <- (unique(data$.rowid) %in% aggte_inffunc[,1])
-        inf.func[disidx] <- aggte_inffunc[,2]
+        inffunc[disidx, counter] <- aggte_inffunc[,2]
       }
-
-
-      # save it in influence function matrix
-      # inffunc[g,t,] <- inf.func
-      inffunc[,counter] <- inf.func
 
       # update counter
       counter <- counter+1
