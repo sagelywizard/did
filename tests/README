@@ -4,6 +4,8 @@ Running test cases:
 
 - Create html file by running `rmarkdown::render` on each .Rmd file in the folder; results shoud be easy to interpret
 
+- Run unit tests by using `devutils::test()`. This may require setting the working directory using `setwd("/path/to/did")`.
+
 
 Description of files in `tests` folder:
 
