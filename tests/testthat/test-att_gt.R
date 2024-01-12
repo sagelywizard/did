@@ -8,7 +8,7 @@ library(ggpubr)
 #-----------------------------------------------------------------------------
 # test each estimation method with panel data
 # Expected results: treatment effects = 1, p-value for pre-test
-# uniformly distributed, ipw model is incorectly specified here
+# uniformly distributed, ipw model is incorrectly specified here
 #-----------------------------------------------------------------------------
 test_that("att_gt works w/o dynamics, time effects, or group effects", {
   sp <- reset.sim()
