@@ -86,17 +86,14 @@ test_that("inference with balanced panel data and aggregations", {
   })
   
   set.seed(1234)
-  #dr 
   dr_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="dr")
   })
-  # reg
   reg_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="reg")
   })
-  # reg
   ipw_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="ipw")
@@ -139,17 +136,14 @@ test_that("inference with clustering", {
   data <- build_sim_dataset(sp)
 
   set.seed(1234)
-  # dr
   dr_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="dr", clustervars="cluster")
   })
-  # reg
   reg_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="reg", clustervars="cluster")
   })
-  # reg
   ipw_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="ipw", clustervars="cluster")
@@ -167,18 +161,15 @@ test_that("inference with clustering", {
   })
 
   set.seed(1234)
-  #dr 
   dr_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
-                   gname="G", est_method="dr", clustervars="cluster")
+           gname="G", est_method="dr", clustervars="cluster")
   })
-  # reg
   reg_new <- with_local_did(
     function() {
       att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
              gname="G", est_method="reg", clustervars="cluster")
   })
-  # reg
   ipw_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="ipw", clustervars="cluster")
@@ -227,19 +218,19 @@ test_that("same inference with unbalanced panel and panel data", {
   data <- build_sim_dataset(sp)
   
   res_factor <- att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id", 
-                        gname="G", est_method="dr", clustervars="cluster")
+                       gname="G", est_method="dr", clustervars="cluster")
 
   #-----------------------------------------------------------------------------
   # clustered standard errors with unbalanced panel
   res_ub <- att_gt(yname="Y",
-              tname="period",
-              idname="id",
-              gname="G",
-              xformla=~X,
-              data=data,
-              panel=TRUE,
-              allow_unbalanced_panel=TRUE,
-              clustervars="cluster")
+                   tname="period",
+                   idname="id",
+                   gname="G",
+                   xformla=~X,
+                   data=data,
+                   panel=TRUE,
+                   allow_unbalanced_panel=TRUE,
+                   clustervars="cluster")
 
   # check that influence function is the same if we use unbalanced panel approach
   # vs. balanced panel approach
@@ -255,15 +246,15 @@ test_that("inference with repeated cross sections", {
   set.seed(1234)
   dr_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
-                   gname="G", est_method="dr", panel=FALSE)
+           gname="G", est_method="dr", panel=FALSE)
   })
   reg_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
-                    gname="G", est_method="reg", panel=FALSE)
+           gname="G", est_method="reg", panel=FALSE)
   })
   ipw_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
-                    gname="G", est_method="ipw", panel=FALSE)
+           gname="G", est_method="ipw", panel=FALSE)
   })
 
   # aggregations
@@ -327,18 +318,14 @@ test_that("inference with repeated cross sections and clustering", {
   
   
   set.seed(1234)
-  # dr
-  
   dr_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="dr", clustervars="cluster", panel=FALSE)
   })
-  # reg
   reg_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="reg", clustervars="cluster", panel=FALSE)
   })
-  # reg
   ipw_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="ipw", clustervars="cluster", panel=FALSE)
@@ -431,17 +418,14 @@ test_that("inference with unbalanced panel", {
   })
   
   set.seed(1234)
-  #dr 
   dr_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
-                   gname="G", est_method="dr", panel=TRUE, allow_unbalanced_panel=TRUE)
+           gname="G", est_method="dr", panel=TRUE, allow_unbalanced_panel=TRUE)
   })
-  # reg
   reg_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="reg", panel=TRUE, allow_unbalanced_panel=TRUE)
   })
-  # reg
   ipw_new <- with_local_did(function() {
   att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
          gname="G", est_method="ipw", panel=TRUE, allow_unbalanced_panel=TRUE)
@@ -512,17 +496,14 @@ test_that("inference with unbalanced panel and clustering", {
   })
 
   set.seed(1234)
-  #dr 
   dr_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="dr", clustervars="cluster", allow_unbalanced_panel=TRUE)
   })
-  # reg
   reg_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="reg", clustervars="cluster", allow_unbalanced_panel=TRUE)
   })
-  # reg
   ipw_new <- with_local_did(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="ipw", clustervars="cluster", allow_unbalanced_panel=TRUE)
