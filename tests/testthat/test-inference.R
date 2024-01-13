@@ -172,7 +172,7 @@ test_that("inference with clustering", {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
            gname="G", est_method="ipw", clustervars="cluster")
   })
-
+  
   # aggregations
   dyn_new <- with_local_did(function() {
     aggte(ipw_new, type="dynamic")
@@ -309,8 +309,6 @@ test_that("inference with repeated cross sections and clustering", {
   sp <- reset.sim()
   data <- build_sim_dataset(sp, panel=FALSE)
 
-  
-  
   set.seed(1234)
   dr_2.0 <- with_did_version_2(function() {
     att_gt(yname="Y", xformla=~X, data=data, tname="period", idname="id",
@@ -330,7 +328,6 @@ test_that("inference with repeated cross sections and clustering", {
   group_2.0 <- with_did_version_2(function() {aggte(reg_2.0, type="group")})
   cal_2.0 <- with_did_version_2(function() {aggte(dr_2.0, type="calendar")})
 
-  
   set.seed(1234)
   #dr 
   dr_new <- with_local_did(function() {
