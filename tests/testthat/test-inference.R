@@ -127,9 +127,7 @@ test_that("inference with balanced panel data and aggregations", {
   expect_equal(dyn_2.0$se[1], dyn_new$se[1], tol=.01)
   expect_equal(group_2.0$se[1], group_new$se[1], tol=.01)
   expect_equal(cal_2.0$se[1], cal_new$se[1], tol=.01)
-  
 })  
-
 
 test_that("inference with clustering", {
   sp <- reset.sim()
@@ -209,7 +207,6 @@ test_that("inference with clustering", {
   expect_equal(dyn_2.0$se[1], dyn_new$se[1], tol=.01)
   expect_equal(group_2.0$se[1], group_new$se[1], tol=.01)
   expect_equal(cal_2.0$se[1], cal_new$se[1], tol=.01)
-  
 })  
 
 test_that("same inference with unbalanced panel and panel data", {
@@ -237,7 +234,6 @@ test_that("same inference with unbalanced panel and panel data", {
   # Note: differences are showing up in never-treated units (that are towards end of sample)
   expect_true(all(res_factor$inffunc == res_ub$inffunc))
 })
-
 
 test_that("inference with repeated cross sections", {
   sp <- reset.sim()
@@ -307,9 +303,7 @@ test_that("inference with repeated cross sections", {
   expect_equal(dyn_2.0$se[1], dyn_new$se[1], tol=.01)
   expect_equal(group_2.0$se[1], group_new$se[1], tol=.01)
   expect_equal(cal_2.0$se[1], cal_new$se[1], tol=.01)
-  
 })
-
 
 test_that("inference with repeated cross sections and clustering", {
   sp <- reset.sim()
@@ -382,10 +376,7 @@ test_that("inference with repeated cross sections and clustering", {
   expect_equal(dyn_2.0$se[1], dyn_new$se[1], tol=.01)
   expect_equal(group_2.0$se[1], group_new$se[1], tol=.01)
   expect_equal(cal_2.0$se[1], cal_new$se[1], tol=.01)
-  
 })  
-
-
 
 test_that("inference with unbalanced panel", {
   sp <- reset.sim()
@@ -459,7 +450,6 @@ test_that("inference with unbalanced panel", {
   expect_equal(dyn_2.0$se[1], dyn_new$se[1], tol=.01)
   expect_equal(group_2.0$se[1], group_new$se[1], tol=.01)
   expect_equal(cal_2.0$se[1], cal_new$se[1], tol=.01)
-  
 })
 
 test_that("inference with unbalanced panel and clustering", {
@@ -537,5 +527,4 @@ test_that("inference with unbalanced panel and clustering", {
   expect_equal(dyn_2.0$se[1], dyn_new$se[1], tol=.01)
   expect_equal(group_2.0$se[1], group_new$se[1], tol=.01)
   expect_equal(cal_2.0$se[1], cal_new$se[1], tol=.01)
-  
 })  
