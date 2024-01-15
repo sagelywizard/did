@@ -56,6 +56,20 @@ with_local_did <- function(fn) {
   ret
 }
 
+expect_agg_gts_equal <- function(att_gt_new, att_gt_2.0) {
+  # checks for ATT(g,t)'s
+  # check that the influence function is the same
+  expect_true(all(att_gt_new$inffunc == att_gt_2.0$inffunc))
+
+  # standard errors should be close
+  # not totally sure, but I think slight differences are expected
+  # perhaps from implementing the multiplier on the C++ side
+  # in newer versions of the code
+  expect_equal(att_gt_new$se[1], att_gt_2.0$se[1], tol=.01)
+}
+
+expect_aggregations_equal <- expect_agg_gts_equal
+  
 test_that("inference with balanced panel data and aggregations", {
   sp <- reset.sim()
   data <- build_sim_dataset(sp)
@@ -104,29 +118,13 @@ test_that("inference with balanced panel data and aggregations", {
   group_new <- with_local_did(function() {aggte(reg_new, type="group")})
   cal_new <- with_local_did(function() {aggte(dr_new, type="calendar")})
 
-  # checks for ATT(g,t)'s
-  # check that the influence function is the same
-  expect_true(all(dr_new$inffunc == dr_2.0$inffunc))
-  expect_true(all(reg_new$inffunc == reg_2.0$inffunc))
-  expect_true(all(ipw_new$inffunc == ipw_2.0$inffunc))
+  expect_agg_gts_equal(dr_new, dr_2.0)
+  expect_agg_gts_equal(reg_new, reg_2.0)
+  expect_agg_gts_equal(ipw_new, ipw_2.0)
 
-  # standard errors should be close
-  # not totally sure, but I think slight differences are expected
-  # perhaps from implementing the multiplier on the C++ side
-  # in newer versions of the code
-  expect_equal(dr_2.0$se[1], dr_new$se[1], tol=.01)
-  expect_equal(reg_2.0$se[1], reg_new$se[1], tol=.01)
-  expect_equal(ipw_2.0$se[1], ipw_new$se[1], tol=.01)
-
-  # checks for aggregations
-  expect_true(all(dyn_2.0$inffunc == dyn_new$inffunc))
-  expect_true(all(group_2.0$inffunc == group_new$inffunc))
-  expect_true(all(cal_2.0$inffunc == cal_new$inffunc))
-
-  # standard errors for aggregations
-  expect_equal(dyn_2.0$se[1], dyn_new$se[1], tol=.01)
-  expect_equal(group_2.0$se[1], group_new$se[1], tol=.01)
-  expect_equal(cal_2.0$se[1], cal_new$se[1], tol=.01)
+  expect_aggregations_equal(dyn_new, dyn_2.0)
+  expect_aggregations_equal(group_new, group_2.0)
+  expect_aggregations_equal(cal_new, cal_2.0)
 })  
 
 test_that("inference with clustering", {
