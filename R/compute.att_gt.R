@@ -1,3 +1,27 @@
+in_post_treatment_period <- function(group_num, time_period_num) {
+  return(group_num <= time_period_num)
+}
+
+get_pretreatment_period <- function(tlist, t, tfac, glist, g, base_period, anticipation, data) {
+  # varying base period
+  pret <- t
+
+  # universal base period
+  if (base_period == "universal") {
+    # use same base period as for post-treatment periods
+    pret <- tail(which( (tlist+anticipation) < glist[g]),1)
+  }
+
+  # check if in post-treatment period
+  if (in_post_treatment_period(glist[g], tlist[t+tfac])) {
+    # update pre-period if in post-treatment period to
+    # be period (g-delta-1)
+    pret <- tail(which( (tlist+anticipation) < glist[g]), 1)
+
+  }
+  return(pret)
+}
+
 #' @title Compute Group-Time Average Treatment Effects
 #'
 #' @description `compute.att_gt` does the main work for computing
@@ -83,16 +107,17 @@ compute.att_gt <- function(dp) {
 
       #-----------------------------------------------------------------------------
       # Set pret
+      pret <- get_pretreatment_period(tlist, t, tfac, glist, g, base_period, anticipation, data)
 
-      # varying base period
-      pret <- t
-
-      # universal base period
-      if (base_period == "universal") {
-        # use same base period as for post-treatment periods
-        pret <- tail(which( (tlist+anticipation) < glist[g]),1)
+      # print a warning message if there are no pre-treatment period
+      if (length(pret) == 0) {
+        warning(paste0("There are no pre-treatment periods for the group first treated at ", glist[g], "\nUnits from this group are dropped"))
+  
+        # if there are not pre-treatment periods, code will
+        # jump out of this loop
+        break
       }
-
+      
       # use "not yet treated as control"
       # that is, never treated + units that are eventually treated,
       # but not treated by the current period (+ anticipation)
@@ -101,25 +126,6 @@ compute.att_gt <- function(dp) {
                             ((data[,gname] > (tlist[max(t,pret)+tfac]+anticipation)) &
                                (data[,gname] != glist[g])))
       }
-
-
-      # check if in post-treatment period
-      if ((glist[g]<=tlist[(t+tfac)])) {
-
-        # update pre-period if in post-treatment period to
-        # be  period (g-delta-1)
-        pret <- tail(which( (tlist+anticipation) < glist[g]),1)
-
-        # print a warning message if there are no pre-treatment period
-        if (length(pret) == 0) {
-          warning(paste0("There are no pre-treatment periods for the group first treated at ", glist[g], "\nUnits from this group are dropped"))
-
-          # if there are not pre-treatment periods, code will
-          # jump out of this loop
-          break
-        }
-      }
-
 
       #-----------------------------------------------------------------------------
       # if we are in period (g-1), normalize results to be equal to 0
