@@ -22,6 +22,26 @@ get_pretreatment_period <- function(tlist, t, tfac, glist, g, base_period, antic
   return(pretreatment_period)
 }
 
+have_enough_observations <- function(G, C, post, glist, g, tlist, t, tfac) {
+  if ( sum(G*post) == 0 ) {
+    warning(paste0("No units in group ", glist[g], " in time period ", tlist[t+tfac]))
+    return(FALSE)
+  }
+  if ( sum(G*(1-post)) == 0) {
+    warning(paste0("No units in group ", glist[g], " in time period ", tlist[t]))
+    return(FALSE)
+  }
+  if (sum(C*post) == 0) {
+    warning(paste0("No available control units for group ", glist[g], " in time period ", tlist[t+tfac]))
+    return(FALSE)
+  }
+  if (sum(C*(1-post)) == 0) {
+    warning(paste0("No availabe control units for group ", glist[g], " in time period ", tlist[t]))
+    return(FALSE)
+  }
+  return(TRUE)
+}
+
 #' @title Compute Group-Time Average Treatment Effects
 #'
 #' @description `compute.att_gt` does the main work for computing
@@ -291,33 +311,12 @@ compute.att_gt <- function(dp) {
         n1 <- sum(G+C)
         w <- disdat$.w
 
-        #-----------------------------------------------------------------------------
-        # checks to make sure that we have enough observations
-        skip_this_att_gt <- FALSE
-        if ( sum(G*post) == 0 ) {
-          warning(paste0("No units in group ", glist[g], " in time period ", tlist[t+tfac]))
-          skip_this_att_gt <- TRUE
-        }
-        if ( sum(G*(1-post)) == 0) {
-          warning(paste0("No units in group ", glist[g], " in time period ", tlist[t]))
-          skip_this_att_gt <- TRUE
-        }
-        if (sum(C*post) == 0) {
-          warning(paste0("No available control units for group ", glist[g], " in time period ", tlist[t+tfac]))
-          skip_this_att_gt <- TRUE
-        }
-        if (sum(C*(1-post)) == 0) {
-          warning(paste0("No availabe control units for group ", glist[g], " in time period ", tlist[t]))
-          skip_this_att_gt <- TRUE
-        }
-
-        if (skip_this_att_gt) {
+        if (!have_enough_observations(G, C, post, glist, g, tlist, t, tfac)) {
           attgt.list[[counter]] <- list(att=NA, group=glist[g], year=tlist[(t+tfac)], post=post.treat)
           inffunc[,counter] <- NA
           counter <- counter+1
           next
         }
-
 
         # matrix of covariates
         covariates <- model.matrix(xformla, data=disdat)
