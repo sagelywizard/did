@@ -88,9 +88,6 @@ compute.att_gt <- function(dp) {
   # main computations
   #-----------------------------------------------------------------------------
 
-  # will populate with all att(g,t)
-  attgt.list <- list()
-
   # place holder in lists
   counter <- 1
 
@@ -103,9 +100,6 @@ compute.att_gt <- function(dp) {
     tfac <- 1
   }
 
-  # influence function
-  inffunc <- Matrix::Matrix(data=0, nrow=n, ncol=nG*(nT-tfac), sparse=FALSE)
-
   # never treated option
   nevertreated <- (control_group[1] == "nevertreated")
 
@@ -115,6 +109,8 @@ compute.att_gt <- function(dp) {
 
   # rename yname to .y
   data$.y <- data[,yname]
+  
+  time_period_data <- list()
 
   # loop over groups
   for (g in 1:nG) {
@@ -150,8 +146,10 @@ compute.att_gt <- function(dp) {
       # and break without computing anything
       if (base_period == "universal") {
         if (tlist[pretreatment_period] == tlist[(t+tfac)]) {
-          attgt.list[[counter]] <- list(att=0, group=glist[g], year=tlist[(t+tfac)], post=0)
-          inffunc[,counter] <- rep(0,n)
+          time_period_data[[length(time_period_data)+1]] <- list(
+            counter=counter,
+            inffunc_data=rep(0, n),
+            attgt_data=list(att=0, group=glist[g], year=tlist[(t+tfac)], post=0))
           counter <- counter+1
           next
         }
@@ -240,8 +238,10 @@ compute.att_gt <- function(dp) {
           }
 
           if (reg_problems_likely | pscore_problems_likely) {
-            attgt.list[[counter]] <- list(att=NA, group=glist[g], year=tlist[(t+tfac)], post=post.treat)
-            inffunc[,counter] <- NA
+            time_period_data[[length(time_period_data)+1]] <- list(
+              counter=counter,
+              inffunc_data=NA,
+              attgt_data=list(att=NA, group=glist[g], year=tlist[(t+tfac)], post=post.treat))
             counter <- counter+1
             next
           }
@@ -312,8 +312,10 @@ compute.att_gt <- function(dp) {
         w <- disdat$.w
 
         if (!have_enough_observations(G, C, post, glist, g, tlist, t, tfac)) {
-          attgt.list[[counter]] <- list(att=NA, group=glist[g], year=tlist[(t+tfac)], post=post.treat)
-          inffunc[,counter] <- NA
+          time_period_data[[length(time_period_data)+1]] <- list(
+            counter=counter,
+            inffunc_data=NA,
+            attgt_data=list(att=NA, group=glist[g], year=tlist[(t+tfac)], post=post.treat))
           counter <- counter+1
           next
         }
@@ -372,29 +374,45 @@ compute.att_gt <- function(dp) {
 
       } #end panel if
 
-      # save results for this att(g,t)
-      attgt.list[[counter]] <- list(
-        att = attgt$ATT, group = glist[g], year = tlist[(t+tfac)], post = post.treat
-      )
-
       # recover the influence function
       # start with vector of 0s because influence function
       # for units that are not in G or C will be equal to 0
 
       # populate the influence function in the right places
-      if(panel) {
-        inffunc[disidx, counter] <- attgt$att.inf.func
-      } else {
+      inffunc_data <- attgt$att.inf.func
+      if(!panel) {
         # aggregate inf functions by id (order by id)
         aggte_inffunc = suppressWarnings(stats::aggregate(attgt$att.inf.func, list(rightids), sum))
         disidx <- (unique(data$.rowid) %in% aggte_inffunc[,1])
-        inffunc[disidx, counter] <- aggte_inffunc[,2]
+        # inffunc[disidx, counter] <- aggte_inffunc[,2]
+        inffunc_data <- aggte_inffunc[,2]
       }
+      time_period_data[[length(time_period_data)+1]] <- list(
+        counter=counter,
+        disidx=disidx,
+        inffunc_data=inffunc_data,
+        attgt_data=list(att = attgt$ATT, group = glist[g], year = tlist[(t+tfac)], post = post.treat))
 
       # update counter
       counter <- counter+1
     } # end looping over t
   } # end looping over g
+
+  # will populate with all att(g,t)
+  attgt.list <- list()
+
+  # influence function
+  inffunc <- Matrix::Matrix(data=0, nrow=n, ncol=nG*(nT-tfac), sparse=FALSE)
+
+  for (iter_data in time_period_data) {
+    counter <- iter_data$counter
+    attgt.list[[counter]] <- iter_data$attgt_data
+    if (is.null(iter_data[["disidx"]])) {
+      inffunc[, counter] <- iter_data$inffunc_data
+    } else {
+      inffunc[iter_data$disidx, counter] <- iter_data$inffunc_data
+    }
+  }
 
   return(list(attgt.list=attgt.list, inffunc=inffunc))
 }
