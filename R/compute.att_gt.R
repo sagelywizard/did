@@ -141,7 +141,7 @@ compute.att_gt <- function(dp) {
       # but not treated by the current period (+ anticipation)
       if(!nevertreated) {
         data$.C <- 1 * ((data[,gname] == 0) |
-                            ((data[,gname] > (tlist[max(t,pret)+tfac]+anticipation)) &
+                            ((data[,gname] > (tlist[max(t,pretreatment_period)+tfac]+anticipation)) &
                                (data[,gname] != glist[g])))
       }
 
