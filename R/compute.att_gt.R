@@ -4,22 +4,22 @@ in_post_treatment_period <- function(group_num, time_period_num) {
 
 get_pretreatment_period <- function(tlist, t, tfac, glist, g, base_period, anticipation, data) {
   # varying base period
-  pret <- t
+  pretreatment_period <- t
 
   # universal base period
   if (base_period == "universal") {
     # use same base period as for post-treatment periods
-    pret <- tail(which( (tlist+anticipation) < glist[g]),1)
+    pretreatment_period <- tail(which( (tlist+anticipation) < glist[g]),1)
   }
 
   # check if in post-treatment period
   if (in_post_treatment_period(glist[g], tlist[t+tfac])) {
     # update pre-period if in post-treatment period to
     # be period (g-delta-1)
-    pret <- tail(which( (tlist+anticipation) < glist[g]), 1)
+    pretreatment_period <- tail(which( (tlist+anticipation) < glist[g]), 1)
 
   }
-  return(pret)
+  return(pretreatment_period)
 }
 
 #' @title Compute Group-Time Average Treatment Effects
@@ -107,10 +107,10 @@ compute.att_gt <- function(dp) {
 
       #-----------------------------------------------------------------------------
       # Set pret
-      pret <- get_pretreatment_period(tlist, t, tfac, glist, g, base_period, anticipation, data)
+      pretreatment_period <- get_pretreatment_period(tlist, t, tfac, glist, g, base_period, anticipation, data)
 
       # print a warning message if there are no pre-treatment period
-      if (length(pret) == 0) {
+      if (length(pretreatment_period) == 0) {
         warning(paste0("There are no pre-treatment periods for the group first treated at ", glist[g], "\nUnits from this group are dropped"))
   
         # if there are not pre-treatment periods, code will
@@ -131,7 +131,7 @@ compute.att_gt <- function(dp) {
       # if we are in period (g-1), normalize results to be equal to 0
       # and break without computing anything
       if (base_period == "universal") {
-        if (tlist[pret] == tlist[(t+tfac)]) {
+        if (tlist[pretreatment_period] == tlist[(t+tfac)]) {
           attgt.list[[counter]] <- list(att=0, group=glist[g], year=tlist[(t+tfac)], post=0)
           inffunc[,counter] <- rep(0,n)
           counter <- counter+1
@@ -143,7 +143,7 @@ compute.att_gt <- function(dp) {
       if (print_details) {
         cat(paste("current period:", tlist[(t+tfac)]), "\n")
         cat(paste("current group:", glist[g]), "\n")
-        cat(paste("set pretreatment period to be", tlist[pret]), "\n")
+        cat(paste("set pretreatment period to be", tlist[pretreatment_period]), "\n")
       }
 
       #-----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ compute.att_gt <- function(dp) {
       post.treat <- 1*(glist[g] <= tlist[t+tfac])
 
       # total number of units (not just included in G or C)
-      disdat <- data[data[,tname] == tlist[t+tfac] | data[,tname] == tlist[pret],]
+      disdat <- data[data[,tname] == tlist[t+tfac] | data[,tname] == tlist[pretreatment_period],]
 
 
       if (panel) {
@@ -184,8 +184,8 @@ compute.att_gt <- function(dp) {
         # we need to do this because panel2cs2 just puts later period
         # in .y1, but if we are in a pre-treatment period with a universal
         # base period, then the "base period" is actually the later period
-        Ypre <- if(tlist[(t+tfac)] > tlist[pret]) disdat$.y0 else disdat$.y1
-        Ypost <- if(tlist[(t+tfac)] > tlist[pret]) disdat$.y1 else disdat$.y0
+        Ypre <- if(tlist[(t+tfac)] > tlist[pretreatment_period]) disdat$.y0 else disdat$.y1
+        Ypost <- if(tlist[(t+tfac)] > tlist[pretreatment_period]) disdat$.y1 else disdat$.y0
         w <- disdat$.w
 
         # matrix of covariates
@@ -276,7 +276,7 @@ compute.att_gt <- function(dp) {
         # this is the fix for unbalanced panels; 2nd criteria shouldn't do anything
         # with true repeated cross sections, but should pick up the right time periods
         # only with unbalanced panel
-        disidx <- (data$.rowid %in% rightids) & ( (data[,tname] == tlist[t+tfac]) | (data[,tname]==tlist[pret]))
+        disidx <- (data$.rowid %in% rightids) & ( (data[,tname] == tlist[t+tfac]) | (data[,tname]==tlist[pretreatment_period]))
 
         # pick up the data that will be used to compute ATT(g,t)
         disdat <- data[disidx,]
