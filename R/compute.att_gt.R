@@ -105,8 +105,6 @@ compute.att_gt <- function(dp) {
     # loop over time periods
     for (t in 1:tlist.length) {
 
-      #-----------------------------------------------------------------------------
-      # Set pret
       pretreatment_period <- get_pretreatment_period(tlist, t, tfac, glist, g, base_period, anticipation, data)
 
       # print a warning message if there are no pre-treatment period
