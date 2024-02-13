@@ -500,7 +500,6 @@ compute.att_gt <- function(dp) {
     "Applying", counter-1, "across", parallelism, "processes",
     "Main process memory used:", pryr::mem_used())
   time_period_data <- parLapply(cl, groups_and_times, do_the_main_thing)
-  maybe_log(dp$print_details, 
   maybe_log(dp$print_details, "Parallel analysis finished.")
   maybe_log(dp$print_details, "Stopping cluster.")
   stopCluster(cl)
