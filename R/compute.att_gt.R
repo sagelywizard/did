@@ -3,7 +3,8 @@ library(pryr)
 
 maybe_log <- function(should_log, ...) {
   if (should_log) {
-    cat(..., "\n")
+    current_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%OS3: ")
+    cat(current_time, ..., "\n")
   }
 }
 
@@ -489,7 +490,11 @@ compute.att_gt <- function(dp) {
       counter <- counter + 1
     }
   }
-  maybe_log(dp$print_details, "Starting parallelized analysis. Main process memory used:", pryr::mem_used())
+  maybe_log(
+    dp$print_details,
+    "Starting parallelized analysis.",
+    "Applying", counter-1, "across", parallelism, "processes",
+    "Main process memory used:", pryr::mem_used())
   time_period_data <- parLapply(cl, groups_and_times, do_the_main_thing)
   maybe_log(dp$print_details, 
   maybe_log(dp$print_details, "Parallel analysis finished.")
