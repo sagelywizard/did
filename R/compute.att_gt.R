@@ -1,4 +1,11 @@
 library(parallel)
+library(pryr)
+
+maybe_log <- function(should_log, ...) {
+  if (should_log) {
+    cat(..., "\n")
+  }
+}
 
 in_post_treatment_period <- function(group_num, time_period_num) {
   return(group_num <= time_period_num)
@@ -70,11 +77,18 @@ do_the_main_thing <- function(group_and_time) {
   nG <- dp$nG
   tlist <- dp$tlist
   glist <- dp$glist
+  
+  maybe_log(
+    print_details,
+    "Executing parallel op. g =", g,
+    "- t =", t,
+    "- counter = ", counter,
+    "- mem used =", pryr::mem_used())
 
   #-----------------------------------------------------------------------------
   # main computations
   #-----------------------------------------------------------------------------
-
+  
   # number of time periods
   tlist.length <- length(tlist)
   tfac <- 0
@@ -121,6 +135,12 @@ do_the_main_thing <- function(group_and_time) {
   # and break without computing anything
   if (base_period == "universal") {
     if (tlist[pretreatment_period] == tlist[(t+tfac)]) {
+      maybe_log(
+        print_details,
+        "We are in period (g-1). Return early, since normalized results will be 0. g =", g,
+        "- t =", t,
+        "- counter = ", counter,
+        "- mem used =", pryr::mem_used())
       return(list(
         counter=counter,
         inffunc_data=rep(0, n),
@@ -138,15 +158,20 @@ do_the_main_thing <- function(group_and_time) {
   #-----------------------------------------------------------------------------
   # results for the case with panel data
   #-----------------------------------------------------------------------------
-
+  maybe_log(
+    print_details,
+    "Calculating results for case w/panel data. g =", g,
+    "- t =", t,
+    "- counter = ", counter,
+    "- mem used =", pryr::mem_used())
   # post treatment dummy variable
   post.treat <- 1*(glist[g] <= tlist[t+tfac])
 
   # total number of units (not just included in G or C)
   disdat <- data[data[,tname] == tlist[t+tfac] | data[,tname] == tlist[pretreatment_period],]
 
-
   if (panel) {
+
     # transform  disdat it into "cross-sectional" data where one of the columns
     # contains the change in the outcome over time.
     disdat <- panel2cs2(disdat, yname, idname, tname, balance_panel=FALSE)
@@ -211,6 +236,12 @@ do_the_main_thing <- function(group_and_time) {
       }
 
       if (reg_problems_likely | pscore_problems_likely) {
+        maybe_log(
+          print_details,
+          "Returning early, because reg or pscore problems are likely. g =", g,
+          "- t =", t,
+          "- counter = ", counter,
+          "- mem used =", pryr::mem_used())
         return(list(
           counter=counter,
           inffunc_data=NA,
@@ -221,7 +252,12 @@ do_the_main_thing <- function(group_and_time) {
     #-----------------------------------------------------------------------------
     # code for actually computing att(g,t)
     #-----------------------------------------------------------------------------
-
+    maybe_log(
+      print_details,
+      "Calculating att(g,t). g =", g,
+      "- t =", t,
+      "- counter = ", counter,
+      "- mem used =", pryr::mem_used())
     if (inherits(est_method,"function")) {
       # user-specified function
       attgt <- est_method(y1=Ypost, y0=Ypre,
@@ -248,13 +284,18 @@ do_the_main_thing <- function(group_and_time) {
                                   i.weights=w,
                                   boot=FALSE, inffunc=TRUE)
     }
+    maybe_log(
+      print_details,
+      "Finished calculating att(g,t). g =", g,
+      "- t =", t,
+      "- counter = ", counter,
+      "- mem used =", pryr::mem_used())
 
     # adjust influence function to account for only using
     # subgroup to estimate att(g,t)
     attgt$att.inf.func <- (n/n1)*attgt$att.inf.func
 
   } else { # repeated cross sections / unbalanced panel
-
     # pick up the indices for units that will be used to compute ATT(g,t)
     # these conditions are (1) you are observed in the right period and
     # (2) you are in the right group (it is possible to be observed in
@@ -283,6 +324,12 @@ do_the_main_thing <- function(group_and_time) {
     w <- disdat$.w
 
     if (!have_enough_observations(G, C, post, glist, g, tlist, t, tfac)) {
+      maybe_log(
+        print_details,
+        "Returning early, because we don't have enough observations. g =", g,
+        "- t =", t,
+        "- counter = ", counter,
+        "- mem used =", pryr::mem_used())
       return(list(
         counter=counter,
         inffunc_data=NA,
@@ -295,7 +342,12 @@ do_the_main_thing <- function(group_and_time) {
     #-----------------------------------------------------------------------------
     # code for actually computing att(g,t)
     #-----------------------------------------------------------------------------
-
+    maybe_log(
+      print_details,
+      "Calculating att(g,t). g =", g,
+      "- t =", t,
+      "- counter = ", counter,
+      "- mem used =", pryr::mem_used())
     if (inherits(est_method, "function")) {
       # user-specified function
       attgt <- est_method(y=Y,
@@ -329,6 +381,12 @@ do_the_main_thing <- function(group_and_time) {
                                i.weights=w,
                                boot=FALSE, inffunc=TRUE)
     }
+    maybe_log(
+      print_details,
+      "Finished calculating att(g,t). g =", g,
+      "- t =", t,
+      "- counter = ", counter,
+      "- mem used =", pryr::mem_used())
 
     # n/n1 adjusts for estimating the
     # att_gt only using observations from groups
@@ -346,6 +404,12 @@ do_the_main_thing <- function(group_and_time) {
   # recover the influence function
   # start with vector of 0s because influence function
   # for units that are not in G or C will be equal to 0
+  maybe_log(
+    print_details,
+    "Recovering influence function. g =", g,
+    "- t =", t,
+    "- counter = ", counter,
+    "- mem used =", pryr::mem_used())
 
   # populate the influence function in the right places
   inffunc_data <- attgt$att.inf.func
@@ -356,6 +420,12 @@ do_the_main_thing <- function(group_and_time) {
     # inffunc[disidx, counter] <- aggte_inffunc[,2]
     inffunc_data <- aggte_inffunc[,2]
   }
+  maybe_log(
+    print_details,
+    "Finishing parallel op. g =", g,
+    "- t =", t,
+    "- counter = ", counter,
+    "- mem used =", pryr::mem_used())
   return(list(
     counter=counter,
     disidx=disidx,
@@ -398,9 +468,19 @@ compute.att_gt <- function(dp) {
   if (dp$pl && dp$cores > 1) {
     parallelism <- dp$cores
   }
+  maybe_log(dp$print_details, "Starting", parallelism, "processes.")
   cl <- makeCluster(parallelism)
-  clusterEvalQ(cl, { require(BMisc) })
-  clusterExport(cl=cl, varlist=c("dp", "in_post_treatment_period", "get_pretreatment_period", "have_enough_observations"), envir=environment())
+  clusterEvalQ(cl, {
+    require(BMisc)
+    library(pryr)
+  })
+  exported_vars <- c(
+    "dp",
+    "in_post_treatment_period",
+    "get_pretreatment_period",
+    "have_enough_observations",
+    "maybe_log")
+  clusterExport(cl=cl, varlist=exported_vars, envir=environment())
   groups_and_times <- list()
   counter <- 1
   for (g in 1:nG) {
@@ -409,8 +489,13 @@ compute.att_gt <- function(dp) {
       counter <- counter + 1
     }
   }
+  maybe_log(dp$print_details, "Starting parallelized analysis. Main process memory used:", pryr::mem_used())
   time_period_data <- parLapply(cl, groups_and_times, do_the_main_thing)
+  maybe_log(dp$print_details, 
+  maybe_log(dp$print_details, "Parallel analysis finished.")
+  maybe_log(dp$print_details, "Stopping cluster.")
   stopCluster(cl)
+  maybe_log(dp$print_details, "Merging data from parallel execution.")
 
   # will populate with all att(g,t)
   attgt.list <- list()
@@ -427,6 +512,7 @@ compute.att_gt <- function(dp) {
       inffunc[iter_data$disidx, counter] <- iter_data$inffunc_data
     }
   }
+  maybe_log(dp$print_details, "Finished merging data.")
 
   return(list(attgt.list=attgt.list, inffunc=inffunc))
 }
