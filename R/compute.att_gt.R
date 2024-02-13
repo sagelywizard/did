@@ -470,7 +470,11 @@ compute.att_gt <- function(dp) {
     parallelism <- dp$cores
   }
   maybe_log(dp$print_details, "Starting", parallelism, "processes.")
-  cl <- makeCluster(parallelism)
+  if (dp$print_details) {
+    cl <- makeCluster(parallelism, outfile="")
+  } else {
+    cl <- makeCluster(parallelism)
+  }
   clusterEvalQ(cl, {
     require(BMisc)
     library(pryr)
