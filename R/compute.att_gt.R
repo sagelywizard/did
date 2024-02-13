@@ -394,7 +394,11 @@ compute.att_gt <- function(dp) {
     tlist.length <- tlist.length - 1
     tfac <- 1
   }
-  cl <- makeCluster(4)
+  parallelism <- 1
+  if (dp$pl && dp$cores > 1) {
+    parallelism <- dp$cores
+  }
+  cl <- makeCluster(parallelism)
   clusterEvalQ(cl, { require(BMisc) })
   clusterExport(cl=cl, varlist=c("dp", "in_post_treatment_period", "get_pretreatment_period", "have_enough_observations"), envir=environment())
   groups_and_times <- list()
